@@ -3,8 +3,7 @@ server:
 
 spring:
   datasource:
-    # Add the connection timezone parameter at the end of the URL
-    url: jdbc:postgresql://localhost:5432/moviebooking
+    url: jdbc:postgresql://localhost:5432/movie_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
