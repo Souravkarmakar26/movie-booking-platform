@@ -2,16 +2,16 @@ package com.xyz.movieservice.service.impl;
 
 import com.xyz.movieservice.dto.ShowRequest;
 import com.xyz.movieservice.dto.ShowResponse;
-import com.xyz.movieservice.entity.Movie;
-import com.xyz.movieservice.entity.Screen;
-import com.xyz.movieservice.entity.Show;
+import com.xyz.movieservice.entity.*;
 import com.xyz.movieservice.repository.MovieRepository;
 import com.xyz.movieservice.repository.ScreenRepository;
+import com.xyz.movieservice.repository.SeatRepository;
 import com.xyz.movieservice.repository.ShowRepository;
 import com.xyz.movieservice.service.ShowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +22,7 @@ public class ShowServiceImpl implements ShowService {
     private final ShowRepository showRepository;
     private final MovieRepository movieRepository;
     private final ScreenRepository screenRepository;
+    private final SeatRepository seatRepository;
 
     @Override
     public ShowResponse createShow(ShowRequest request) {
@@ -41,6 +42,8 @@ public class ShowServiceImpl implements ShowService {
                 .build();
 
         Show saved = showRepository.save(show);
+
+        seatGeneration(screen, saved);
 
         return ShowResponse.builder()
                 .id(saved.getId())
@@ -66,5 +69,24 @@ public class ShowServiceImpl implements ShowService {
                         .price(show.getPrice())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    private void seatGeneration(Screen screen, Show saved) {
+        List<Seat> seats = new ArrayList<>();
+
+        int totalSeats = screen.getTotalSeats();
+
+        for (int i = 1; i <= totalSeats; i++) {
+
+            Seat seat = Seat.builder()
+                    .seatNumber("S" + i)
+                    .status(SeatStatus.AVAILABLE)
+                    .show(saved)
+                    .build();
+
+            seats.add(seat);
+        }
+
+        seatRepository.saveAll(seats);
     }
 }
