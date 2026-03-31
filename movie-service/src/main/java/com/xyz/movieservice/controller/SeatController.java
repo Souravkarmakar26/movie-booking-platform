@@ -2,6 +2,7 @@ package com.xyz.movieservice.controller;
 
 import com.xyz.movieservice.dto.SeatLockRequest;
 import com.xyz.movieservice.dto.SeatResponse;
+import com.xyz.movieservice.dto.SeatValidationRequest;
 import com.xyz.movieservice.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,5 +27,12 @@ public class SeatController {
         seatService.lockSeats(request);
 
         return "Seats locked successfully";
+    }
+
+    @PostMapping("/validate-lock")
+    public Boolean validateSeatLock(
+            @RequestBody SeatValidationRequest request){
+
+        return seatService.validateSeatLock(request);
     }
 }

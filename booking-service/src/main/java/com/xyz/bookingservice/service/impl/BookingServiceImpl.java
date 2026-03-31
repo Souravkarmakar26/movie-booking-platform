@@ -2,6 +2,7 @@ package com.xyz.bookingservice.service.impl;
 
 import com.xyz.bookingservice.dto.BookingRequest;
 import com.xyz.bookingservice.dto.BookingResponse;
+import com.xyz.bookingservice.dto.SeatValidationRequest;
 import com.xyz.bookingservice.dto.ShowResponse;
 import com.xyz.bookingservice.entity.Booking;
 import com.xyz.bookingservice.entity.BookingSeat;
@@ -26,12 +27,25 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse createBooking(BookingRequest request) {
 
+        // Validate seat lock with Movie Service
+        SeatValidationRequest validationRequest = new SeatValidationRequest();
+        validationRequest.setShowId(request.getShowId());
+        validationRequest.setUserId(request.getUserId());
+        validationRequest.setSeatNumbers(request.getSeatNumbers());
+        Boolean isValid =
+                movieServiceClient.validateSeatLock(validationRequest);
+        if(!isValid){
+            throw new RuntimeException(
+                    "Seat lock expired or invalid"
+            );
+        }
+        //Fetch show details from Movie Service
         ShowResponse show =
                 movieServiceClient.getShow(request.getShowId());
-
+        //Calculate total price
         double totalAmount =
                 show.getPrice() * request.getSeatNumbers().size();
-
+        //Create booking
         Booking booking = Booking.builder()
                 .showId(request.getShowId())
                 .userId(request.getUserId())
@@ -39,19 +53,15 @@ public class BookingServiceImpl implements BookingService {
                 .totalAmount(totalAmount)
                 .createdAt(LocalDateTime.now())
                 .build();
-
         Booking savedBooking =
                 bookingRepository.save(booking);
-
-        for (String seat : request.getSeatNumbers()) {
-
+        //Save booking seats
+        for(String seat : request.getSeatNumbers()) {
             BookingSeat bookingSeat = BookingSeat.builder()
                     .bookingId(savedBooking.getId())
                     .seatNumber(seat)
                     .build();
-
             bookingSeatRepository.save(bookingSeat);
-
         }
         return BookingResponse.builder()
                 .bookingId(savedBooking.getId())

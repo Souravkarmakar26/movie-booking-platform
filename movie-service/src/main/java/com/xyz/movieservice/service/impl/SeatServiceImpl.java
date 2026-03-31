@@ -2,6 +2,7 @@ package com.xyz.movieservice.service.impl;
 
 import com.xyz.movieservice.dto.SeatLockRequest;
 import com.xyz.movieservice.dto.SeatResponse;
+import com.xyz.movieservice.dto.SeatValidationRequest;
 import com.xyz.movieservice.repository.SeatRepository;
 import com.xyz.movieservice.service.SeatService;
 import lombok.RequiredArgsConstructor;
@@ -34,17 +35,28 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     public void lockSeats(SeatLockRequest request) {
-
         for(String seat : request.getSeatNumbers()) {
-
             String key = "seat_lock:" + request.getShowId() + ":" + seat;
-
             Boolean isLocked = redisTemplate.opsForValue()
                     .setIfAbsent(key, request.getUserId(), Duration.ofMinutes(5));
-
             if(Boolean.FALSE.equals(isLocked)) {
                 throw new RuntimeException("Seat already locked: " + seat);
             }
         }
+    }
+
+    @Override
+    public Boolean validateSeatLock(SeatValidationRequest request) {
+        for(String seat : request.getSeatNumbers()) {
+            String key = "seat_lock:" + request.getShowId() + ":" + seat;
+            Object value = redisTemplate.opsForValue().get(key);
+            if (value == null) {
+                return false;
+            }
+            if (!value.equals(request.getUserId())) {
+                return false;
+            }
+        }
+        return true;
     }
 }
