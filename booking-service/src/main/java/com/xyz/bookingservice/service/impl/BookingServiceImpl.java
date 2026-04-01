@@ -9,6 +9,7 @@ import com.xyz.bookingservice.entity.BookingSeat;
 import com.xyz.bookingservice.entity.BookingStatus;
 import com.xyz.bookingservice.event.BookingCreatedEvent;
 import com.xyz.bookingservice.kafka.BookingEventProducer;
+import com.xyz.bookingservice.pricing.DiscountEngine;
 import com.xyz.bookingservice.repository.BookingRepository;
 import com.xyz.bookingservice.repository.BookingSeatRepository;
 import com.xyz.bookingservice.service.BookingService;
@@ -26,6 +27,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingSeatRepository bookingSeatRepository;
     private final MovieServiceClient movieServiceClient;
     private final BookingEventProducer bookingEventProducer;
+    private final DiscountEngine discountEngine;
 
     @Override
     public BookingResponse createBooking(BookingRequest request) {
@@ -45,9 +47,8 @@ public class BookingServiceImpl implements BookingService {
         //Fetch show details from Movie Service
         ShowResponse show =
                 movieServiceClient.getShow(request.getShowId());
-        //Calculate total price
-        double totalAmount =
-                show.getPrice() * request.getSeatNumbers().size();
+        //Calculate final price after discount if applied
+        double totalAmount = calculateFinalPrice(request, show);
         //Create booking
         Booking booking = Booking.builder()
                 .showId(request.getShowId())
@@ -80,5 +81,18 @@ public class BookingServiceImpl implements BookingService {
                 .status(savedBooking.getStatus().name())
                 .totalAmount(totalAmount)
                 .build();
+    }
+
+    private double calculateFinalPrice(BookingRequest request, ShowResponse show) {
+        int ticketCount = request.getSeatNumbers().size();
+
+        double basePrice =
+                show.getPrice() * ticketCount;
+
+        return discountEngine.applyDiscounts(
+                basePrice,
+                ticketCount,
+                show.getStartTime()
+        );
     }
 }
