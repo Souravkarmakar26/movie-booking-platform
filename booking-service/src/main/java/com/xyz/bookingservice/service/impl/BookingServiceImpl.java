@@ -7,6 +7,8 @@ import com.xyz.bookingservice.dto.ShowResponse;
 import com.xyz.bookingservice.entity.Booking;
 import com.xyz.bookingservice.entity.BookingSeat;
 import com.xyz.bookingservice.entity.BookingStatus;
+import com.xyz.bookingservice.event.BookingCreatedEvent;
+import com.xyz.bookingservice.kafka.BookingEventProducer;
 import com.xyz.bookingservice.repository.BookingRepository;
 import com.xyz.bookingservice.repository.BookingSeatRepository;
 import com.xyz.bookingservice.service.BookingService;
@@ -23,6 +25,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final BookingSeatRepository bookingSeatRepository;
     private final MovieServiceClient movieServiceClient;
+    private final BookingEventProducer bookingEventProducer;
 
     @Override
     public BookingResponse createBooking(BookingRequest request) {
@@ -63,6 +66,15 @@ public class BookingServiceImpl implements BookingService {
                     .build();
             bookingSeatRepository.save(bookingSeat);
         }
+        BookingCreatedEvent event =
+                new BookingCreatedEvent(
+                        savedBooking.getId(),
+                        request.getShowId(),
+                        request.getSeatNumbers()
+                );
+
+        bookingEventProducer.publishBookingCreatedEvent(event);
+
         return BookingResponse.builder()
                 .bookingId(savedBooking.getId())
                 .status(savedBooking.getStatus().name())

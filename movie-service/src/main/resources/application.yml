@@ -19,3 +19,10 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+#  kafka:
+#    consumer:
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#    properties:
+#      properties:
+#        spring.json.trusted.packages: "*"
