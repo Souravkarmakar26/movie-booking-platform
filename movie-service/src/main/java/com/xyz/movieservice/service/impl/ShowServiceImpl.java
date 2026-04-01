@@ -89,4 +89,19 @@ public class ShowServiceImpl implements ShowService {
 
         seatRepository.saveAll(seats);
     }
+    @Override
+    public ShowResponse getShow(Long showId) {
+
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new RuntimeException("Show not found"));
+
+        return ShowResponse.builder()
+                .id(show.getId())
+                .movieId(show.getMovie().getId())
+                .screenId(show.getScreen().getId())
+                .startTime(show.getStartTime())
+                .endTime(show.getEndTime())
+                .price(show.getPrice())
+                .build();
+    }
 }

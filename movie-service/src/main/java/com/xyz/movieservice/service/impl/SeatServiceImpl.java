@@ -3,6 +3,8 @@ package com.xyz.movieservice.service.impl;
 import com.xyz.movieservice.dto.SeatLockRequest;
 import com.xyz.movieservice.dto.SeatResponse;
 import com.xyz.movieservice.dto.SeatValidationRequest;
+import com.xyz.movieservice.entity.Seat;
+import com.xyz.movieservice.entity.SeatStatus;
 import com.xyz.movieservice.repository.SeatRepository;
 import com.xyz.movieservice.service.SeatService;
 import lombok.RequiredArgsConstructor;
@@ -58,5 +60,26 @@ public class SeatServiceImpl implements SeatService {
             }
         }
         return true;
+    }
+
+    @Override
+    public void confirmBooking(Long showId,
+                               List<String> seats){
+
+        List<Seat> seatList =
+                seatRepository
+                        .findByShowIdAndSeatNumberIn(showId, seats);
+
+        for(Seat seat : seatList){
+            seat.setStatus(SeatStatus.BOOKED);
+        }
+
+        seatRepository.saveAll(seatList);
+
+        for(String seat : seats){
+            String key =
+                    "seat_lock:" + showId + ":" + seat;
+            redisTemplate.delete(key);
+        }
     }
 }

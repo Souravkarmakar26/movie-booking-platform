@@ -12,4 +12,6 @@ public interface SeatService {
     void lockSeats(SeatLockRequest request);
 
     Boolean validateSeatLock(SeatValidationRequest request);
+
+    void confirmBooking(Long showId, List<String> seats);
 }

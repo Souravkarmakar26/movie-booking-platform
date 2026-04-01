@@ -15,12 +15,9 @@ public class Seat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String seatNumber;
-
     @Enumerated(EnumType.STRING)
     private SeatStatus status;
-
     @ManyToOne
     @JoinColumn(name = "show_id")
     private Show show;

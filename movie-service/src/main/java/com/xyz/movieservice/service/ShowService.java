@@ -10,4 +10,6 @@ public interface ShowService {
     ShowResponse createShow(ShowRequest request);
 
     List<ShowResponse> getShowsByMovie(Long movieId);
+
+    ShowResponse getShow(Long showId);
 }
