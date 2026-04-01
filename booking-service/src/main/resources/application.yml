@@ -1,7 +1,14 @@
 server:
   port: 8082
 
+movie:
+  service:
+    url: http://localhost:8081
+
 spring:
+  application:
+    name: booking-service
+
   datasource:
     url: jdbc:postgresql://localhost:5432/booking_db
     username: postgres
@@ -21,3 +28,27 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       # Change this line from StringSerializer to JsonSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  management:
+    tracing:
+      sampling:
+        probability: 1.0
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics,loggers
+
+      endpoint:
+        health:
+          show-details: always
+
+  otel:
+    exporter:
+      otlp:
+        endpoint: http://localhost:4318
+
+  logging:
+    correlation:
+      enabled: true
+    pattern:
+      level: "%5p [${spring.application.name:},traceId=%X{traceId},spanId=%X{spanId}]"

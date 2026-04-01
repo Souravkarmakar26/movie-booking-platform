@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8083/realms/movie-booking
+  cloud:
+    gateway:
+      routes:
+        - id: movie-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/movies/**,/shows/**,/theaters/**,/screens/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: booking-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/bookings/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+  management:
+    tracing:
+      sampling:
+        probability: 1.0
+
+  otel:
+    exporter:
+      otlp:
+        endpoint: http://localhost:4318
+
+  logging:
+    correlation:
+      enabled: true
+    pattern:
+      level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

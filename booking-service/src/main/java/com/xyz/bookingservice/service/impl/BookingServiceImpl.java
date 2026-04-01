@@ -15,10 +15,11 @@ import com.xyz.bookingservice.repository.BookingSeatRepository;
 import com.xyz.bookingservice.service.BookingService;
 import com.xyz.bookingservice.service.MovieServiceClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -31,7 +32,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse createBooking(BookingRequest request) {
-
+        log.info("creating booking for user : {}", request.getUserId());
         // Validate seat lock with Movie Service
         SeatValidationRequest validationRequest = new SeatValidationRequest();
         validationRequest.setShowId(request.getShowId());
@@ -39,7 +40,9 @@ public class BookingServiceImpl implements BookingService {
         validationRequest.setSeatNumbers(request.getSeatNumbers());
         Boolean isValid =
                 movieServiceClient.validateSeatLock(validationRequest);
+        log.info("Seat is validated : {}",isValid.toString());
         if(!isValid){
+            log.error("Seat lock expired or invalid");
             throw new RuntimeException(
                     "Seat lock expired or invalid"
             );
@@ -47,6 +50,7 @@ public class BookingServiceImpl implements BookingService {
         //Fetch show details from Movie Service
         ShowResponse show =
                 movieServiceClient.getShow(request.getShowId());
+        log.info("show details from movie service : {}",request.getShowId());
         //Calculate final price after discount if applied
         double totalAmount = calculateFinalPrice(request, show);
         //Create booking
@@ -75,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
                 );
 
         bookingEventProducer.publishBookingCreatedEvent(event);
-
+        log.info("created booking for user : {} and booking id : {}", request.getUserId(), savedBooking.getId());
         return BookingResponse.builder()
                 .bookingId(savedBooking.getId())
                 .status(savedBooking.getStatus().name())

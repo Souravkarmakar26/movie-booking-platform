@@ -2,6 +2,9 @@ server:
   port: 8081
 
 spring:
+  application:
+    name: movie-service
+
   datasource:
     url: jdbc:postgresql://localhost:5432/movie_db
     username: postgres
@@ -26,3 +29,27 @@ spring:
 #    properties:
 #      properties:
 #        spring.json.trusted.packages: "*"
+
+  management:
+    tracing:
+      sampling:
+        probability: 1.0
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics,loggers
+
+      endpoint:
+        health:
+          show-details: always
+
+  otel:
+    exporter:
+      otlp:
+        endpoint: http://localhost:4318
+
+  logging:
+    correlation:
+      enabled: true
+    pattern:
+      level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
