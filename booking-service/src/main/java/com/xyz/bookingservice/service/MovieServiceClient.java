@@ -33,7 +33,7 @@ public class MovieServiceClient {
     }
     @CircuitBreaker(name = "movieService", fallbackMethod = "fallbackValidateSeat")
     public Boolean validateSeatLock(SeatValidationRequest request){
-        String url = movieServiceUrl+"/shows/validate-lock";
+        String url = movieServiceUrl+"/seats/validate-lock";
         log.info("calling movie service for validate seats : {}",url);
         return restTemplate.postForObject(
                 url,

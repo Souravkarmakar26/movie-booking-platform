@@ -1,4 +1,4 @@
-services: # Remove the 'version: 3' line entirely
+services:
 
   postgres:
     image: postgres:14
@@ -17,7 +17,7 @@ services: # Remove the 'version: 3' line entirely
     ports:
       - "6379:6379"
 
-  zookeeper: # Ensure this is exactly 'zookeeper'
+  zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -34,7 +34,6 @@ services: # Remove the 'version: 3' line entirely
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # This handles internal Docker networking and your external IntelliJ connection
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -56,6 +55,6 @@ services: # Remove the 'version: 3' line entirely
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686" # UI
-      - "4317:4317"   # OTLP gRPC (Alternative)
+      - "16686:16686"
+      - "4317:4317"
       - "4318:4318"

@@ -26,7 +26,6 @@ spring:
     producer:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      # Change this line from StringSerializer to JsonSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   management:
